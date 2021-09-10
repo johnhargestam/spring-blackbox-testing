@@ -1,6 +1,7 @@
 package org.johnhargestam.springblackboxtesting.controller;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,17 +34,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BlackBoxTest {
 
   static MockRestServiceServer server;
+  static RestTemplate restTemplate;
 
   @TestConfiguration
   static class TestRestTemplateConfiguration {
     @Bean
     public RestTemplate restTemplate() {
-      RestTemplate restTemplate = new RestTemplate();
-      server = MockRestServiceServer.createServer(restTemplate);
-      server.expect(requestTo("http://localhost:0/auth"))
-          .andRespond(withSuccess("{ \"token\": \"authorized\" }", MediaType.APPLICATION_JSON));
       return restTemplate;
     }
+  }
+
+  @BeforeAll
+  static void beforeAll() {
+    restTemplate = new RestTemplate();
+    server = MockRestServiceServer.createServer(restTemplate);
+    server.expect(requestTo("http://localhost:0/auth"))
+        .andRespond(withSuccess("{ \"token\": \"authorized\" }", MediaType.APPLICATION_JSON));
   }
 
   @Autowired
@@ -51,23 +57,31 @@ class BlackBoxTest {
 
   @BeforeEach
   void beforeEach() {
-    server.verify();
     server.reset();
   }
 
   @AfterEach
   void afterEach() {
     server.verify();
-    server.reset();
   }
 
   @Test
   void testGet() throws Exception {
     server.expect(requestTo("http://localhost:0/host?token=authorized"))
-        .andRespond(withSuccess("{ \"property\": \"external\" }", MediaType.APPLICATION_JSON));
+        .andRespond(withSuccess("{ \"property\": \"testGet\" }", MediaType.APPLICATION_JSON));
 
     mockMvc.perform(get("/main/resource"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.property").value("external"));
+        .andExpect(jsonPath("$.property").value("testGet"));
+  }
+
+  @Test
+  void testGetAgain() throws Exception {
+    server.expect(requestTo("http://localhost:0/host?token=authorized"))
+        .andRespond(withSuccess("{ \"property\": \"testGetAgain\" }", MediaType.APPLICATION_JSON));
+
+    mockMvc.perform(get("/main/resource"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.property").value("testGetAgain"));
   }
 }
