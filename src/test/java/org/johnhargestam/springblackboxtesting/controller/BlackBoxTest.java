@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.test.web.client.RequestMatcher;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
@@ -66,22 +65,23 @@ class BlackBoxTest {
   }
 
   @Test
-  void testGet() throws Exception {
+  void testGetJsonArray() throws Exception {
     server.expect(requestTo("http://localhost:0/host?token=authorized"))
-        .andRespond(withSuccess("{ \"property\": \"testGet\" }", MediaType.APPLICATION_JSON));
+        .andRespond(withSuccess("[{ \"property\": \"value\" }]", MediaType.APPLICATION_JSON));
 
     mockMvc.perform(get("/main/resource"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.property").value("testGet"));
+        .andExpect(jsonPath("$[0].property").value("value"));
   }
 
   @Test
-  void testGetAgain() throws Exception {
+  void testGetEmptyJsonArray() throws Exception {
     server.expect(requestTo("http://localhost:0/host?token=authorized"))
-        .andRespond(withSuccess("{ \"property\": \"testGetAgain\" }", MediaType.APPLICATION_JSON));
+        .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
-    mockMvc.perform(get("/main/resource"))
+    var result = mockMvc.perform(get("/main/resource"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.property").value("testGetAgain"));
+        .andExpect(jsonPath("$").isEmpty())
+        .andReturn();
   }
 }

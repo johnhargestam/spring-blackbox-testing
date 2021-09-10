@@ -1,14 +1,16 @@
 package org.johnhargestam.springblackboxtesting.service.external;
 
-import org.johnhargestam.springblackboxtesting.service.external.response.AuthResponse;
-import org.johnhargestam.springblackboxtesting.service.external.response.ExternalResourceResponse;
+import org.johnhargestam.springblackboxtesting.service.external.response.Authorization;
+import org.johnhargestam.springblackboxtesting.service.external.response.ExternalResource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ExternalService {
@@ -31,12 +33,12 @@ public class ExternalService {
 
   @EventListener(ApplicationReadyEvent.class)
   public void authorize() {
-    AuthResponse response = restTemplate.getForObject(authHost, AuthResponse.class);
-    authToken = Objects.requireNonNull(response).token();
+    Authorization authorization = restTemplate.getForObject(authHost, Authorization.class);
+    authToken = Optional.ofNullable(authorization).orElseThrow().token();
   }
 
-  public String getResource() {
-    ExternalResourceResponse response = restTemplate.getForObject(resourceHost + "?token={token}", ExternalResourceResponse.class, authToken);
-    return Objects.requireNonNull(response).property();
+  public List<ExternalResource> getResources() {
+    ExternalResource[] resources = restTemplate.getForObject(resourceHost + "?token={token}", ExternalResource[].class, authToken);
+    return Optional.ofNullable(resources).map(Arrays::asList).orElseThrow();
   }
 }
