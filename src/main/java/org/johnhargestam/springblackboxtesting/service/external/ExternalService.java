@@ -29,7 +29,7 @@ public class ExternalService {
     this.restTemplate = restTemplate;
   }
 
-  //@EventListener(ApplicationReadyEvent.class)
+  @EventListener(ApplicationReadyEvent.class)
   public void authorize() {
     AuthResponse response = restTemplate.getForObject(authHost, AuthResponse.class);
     authToken = Objects.requireNonNull(response).token();
