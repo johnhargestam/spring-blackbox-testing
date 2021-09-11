@@ -1,8 +1,6 @@
 package org.johnhargestam.springblackboxtesting.service.external;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Scheduler;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.johnhargestam.springblackboxtesting.Clock;
 import org.johnhargestam.springblackboxtesting.service.external.response.Authorization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,41 +8,35 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class AuthService {
 
   private final String authHost;
   private final RestTemplate restTemplate;
-  private final Observable<Authorization> observable;
+  private final Clock clock;
+
+  private volatile Authorization authorization;
 
   @Autowired
   public AuthService(
       @Value("${external.auth.host}") String host,
-      RestTemplate restTemplate
-  ) {
-    this(host, restTemplate, Schedulers.io());
-  }
-
-  protected AuthService(
-      String host,
       RestTemplate restTemplate,
-      Scheduler scheduler
+      Clock clock
   ) {
     this.authHost = host;
     this.restTemplate = restTemplate;
-    this.observable = Observable.fromCallable(this::getAuthorization)
-        .replay(1)
-        .refCount(10, TimeUnit.SECONDS, scheduler);
+    this.clock = clock;
   }
 
-  public String authorize() {
-    Authorization authorization = observable.blockingFirst();
+  public synchronized String getAuthorizationToken() {
+    if (authorization == null || authorization.expiry() <= clock.now()) {
+      authorization = authorize();
+    }
     return authorization.token();
   }
 
-  private Authorization getAuthorization() {
+  private Authorization authorize() {
     Authorization authorization = restTemplate.getForObject(authHost, Authorization.class);
     return Optional.ofNullable(authorization).orElseThrow();
   }

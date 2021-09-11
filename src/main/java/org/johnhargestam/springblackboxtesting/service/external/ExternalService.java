@@ -34,7 +34,7 @@ public class ExternalService {
   }
 
   public List<ExternalResource> getResources() {
-    String authToken = authService.authorize();
+    String authToken = authService.getAuthorizationToken();
     ExternalResource[] resources = restTemplate.getForObject(resourceHost + "?token={token}", ExternalResource[].class, authToken);
     return Optional.ofNullable(resources)
         .map(Arrays::asList)
