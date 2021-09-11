@@ -40,8 +40,13 @@ public class ExternalService {
 
   @EventListener(ApplicationReadyEvent.class)
   public void authorize() {
+    Authorization authorization = getAuthorization();
+    authToken = authorization.token();
+  }
+
+  private Authorization getAuthorization() {
     Authorization authorization = restTemplate.getForObject(authHost, Authorization.class);
-    authToken = Optional.ofNullable(authorization).orElseThrow().token();
+    return Optional.ofNullable(authorization).orElseThrow();
   }
 
   public List<ExternalResource> getResources() {
