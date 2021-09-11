@@ -44,7 +44,7 @@ public class ExternalService {
     authToken = authorization.token();
   }
 
-  private Authorization getAuthorization() {:wq
+  private Authorization getAuthorization() {
     Authorization authorization = restTemplate.getForObject(authHost, Authorization.class);
     return Optional.ofNullable(authorization).orElseThrow();
   }
