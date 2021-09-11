@@ -44,13 +44,15 @@ public class ExternalService {
     authToken = authorization.token();
   }
 
-  private Authorization getAuthorization() {
+  private Authorization getAuthorization() {:wq
     Authorization authorization = restTemplate.getForObject(authHost, Authorization.class);
     return Optional.ofNullable(authorization).orElseThrow();
   }
 
   public List<ExternalResource> getResources() {
     ExternalResource[] resources = restTemplate.getForObject(resourceHost + "?token={token}", ExternalResource[].class, authToken);
-    return Optional.ofNullable(resources).map(Arrays::asList).orElse(emptyList());
+    return Optional.ofNullable(resources)
+        .map(Arrays::asList)
+        .orElse(emptyList());
   }
 }
