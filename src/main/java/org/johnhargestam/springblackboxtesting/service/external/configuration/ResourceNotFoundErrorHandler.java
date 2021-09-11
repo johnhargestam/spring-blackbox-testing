@@ -1,4 +1,4 @@
-package org.johnhargestam.springblackboxtesting.configuration;
+package org.johnhargestam.springblackboxtesting.service.external.configuration;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;

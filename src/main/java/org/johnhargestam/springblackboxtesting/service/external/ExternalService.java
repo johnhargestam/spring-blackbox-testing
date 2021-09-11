@@ -1,7 +1,7 @@
 package org.johnhargestam.springblackboxtesting.service.external;
 
-import org.johnhargestam.springblackboxtesting.configuration.JsonRootMessageConverter;
-import org.johnhargestam.springblackboxtesting.configuration.ResourceNotFoundErrorHandler;
+import org.johnhargestam.springblackboxtesting.service.external.configuration.UnexpectedJsonRootMessageConverter;
+import org.johnhargestam.springblackboxtesting.service.external.configuration.ResourceNotFoundErrorHandler;
 import org.johnhargestam.springblackboxtesting.service.external.response.Authorization;
 import org.johnhargestam.springblackboxtesting.service.external.response.ExternalResource;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +35,7 @@ public class ExternalService {
     this.restTemplate = restTemplate;
 
     restTemplate.setErrorHandler(new ResourceNotFoundErrorHandler());
-    restTemplate.getMessageConverters().add(0, new JsonRootMessageConverter());
+    restTemplate.getMessageConverters().add(0, new UnexpectedJsonRootMessageConverter());
   }
 
   @EventListener(ApplicationReadyEvent.class)
