@@ -1,15 +1,12 @@
 package org.johnhargestam.springblackboxtesting.controller;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.AutoConfigureMockRestServiceServer;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
@@ -34,31 +31,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class BlackBoxTest {
 
-  static MockRestServiceServer server;
-  static RestTemplate restTemplate;
-
-  @TestConfiguration
-  static class TestRestTemplateConfiguration {
-    @Bean
-    public RestTemplate restTemplate() {
-      return restTemplate;
-    }
-  }
-
-  @BeforeAll
-  static void beforeAll() {
-    restTemplate = new RestTemplate();
-    server = MockRestServiceServer.createServer(restTemplate);
-    server.expect(requestTo("http://localhost:0/auth"))
-        .andRespond(withSuccess("{ \"token\": \"authorized\" }", MediaType.APPLICATION_JSON));
-  }
-
+  MockRestServiceServer server;
+  @Autowired
+  RestTemplate restTemplate;
   @Autowired
   MockMvc mockMvc;
 
   @BeforeEach
   void beforeEach() {
-    server.reset();
+    server = MockRestServiceServer.createServer(restTemplate);
   }
 
   @AfterEach
@@ -68,6 +49,8 @@ class BlackBoxTest {
 
   @Test
   void testGetJsonArray() throws Exception {
+    server.expect(requestTo("http://localhost:0/auth"))
+        .andRespond(withSuccess("{ \"token\": \"authorized\" }", MediaType.APPLICATION_JSON));
     server.expect(requestTo("http://localhost:0/host?token=authorized"))
         .andRespond(withSuccess("[{ \"property\": \"value\" }]", MediaType.APPLICATION_JSON));
 
@@ -78,6 +61,8 @@ class BlackBoxTest {
 
   @Test
   void testGetEmptyJsonArray() throws Exception {
+    server.expect(requestTo("http://localhost:0/auth"))
+        .andRespond(withSuccess("{ \"token\": \"authorized\" }", MediaType.APPLICATION_JSON));
     server.expect(requestTo("http://localhost:0/host?token=authorized"))
         .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
@@ -89,6 +74,8 @@ class BlackBoxTest {
 
   @Test
   void testGet404WithUnexpectedJsonObject() throws Exception {
+    server.expect(requestTo("http://localhost:0/auth"))
+        .andRespond(withSuccess("{ \"token\": \"authorized\" }", MediaType.APPLICATION_JSON));
     server.expect(requestTo("http://localhost:0/host?token=authorized"))
         .andRespond(
             withStatus(HttpStatus.NOT_FOUND)

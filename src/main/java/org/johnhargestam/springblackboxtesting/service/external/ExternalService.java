@@ -1,12 +1,9 @@
 package org.johnhargestam.springblackboxtesting.service.external;
 
-import org.johnhargestam.springblackboxtesting.service.external.configuration.UnexpectedJsonRootMessageConverter;
 import org.johnhargestam.springblackboxtesting.service.external.configuration.ResourceNotFoundErrorHandler;
-import org.johnhargestam.springblackboxtesting.service.external.response.Authorization;
+import org.johnhargestam.springblackboxtesting.service.external.configuration.UnexpectedJsonRootMessageConverter;
 import org.johnhargestam.springblackboxtesting.service.external.response.ExternalResource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,37 +16,25 @@ import static java.util.Collections.emptyList;
 @Service
 public class ExternalService {
 
-  private final String authHost;
   private final String resourceHost;
   private final RestTemplate restTemplate;
-
-  private String authToken;
+  private final AuthService authService;
 
   public ExternalService(
-      @Value("${external.auth.host}") String authHost,
       @Value("${external.resource.host}") String resourceHost,
+      AuthService authService,
       RestTemplate restTemplate
   ) {
-    this.authHost = authHost;
     this.resourceHost = resourceHost;
+    this.authService = authService;
     this.restTemplate = restTemplate;
 
     restTemplate.setErrorHandler(new ResourceNotFoundErrorHandler());
     restTemplate.getMessageConverters().add(0, new UnexpectedJsonRootMessageConverter());
   }
 
-  @EventListener(ApplicationReadyEvent.class)
-  public void authorize() {
-    Authorization authorization = getAuthorization();
-    authToken = authorization.token();
-  }
-
-  private Authorization getAuthorization() {
-    Authorization authorization = restTemplate.getForObject(authHost, Authorization.class);
-    return Optional.ofNullable(authorization).orElseThrow();
-  }
-
   public List<ExternalResource> getResources() {
+    String authToken = authService.authorize();
     ExternalResource[] resources = restTemplate.getForObject(resourceHost + "?token={token}", ExternalResource[].class, authToken);
     return Optional.ofNullable(resources)
         .map(Arrays::asList)
