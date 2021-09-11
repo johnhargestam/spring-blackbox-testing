@@ -1,5 +1,6 @@
 package org.johnhargestam.springblackboxtesting.service.external;
 
+import org.johnhargestam.springblackboxtesting.configuration.JsonRootMessageConverter;
 import org.johnhargestam.springblackboxtesting.service.external.response.Authorization;
 import org.johnhargestam.springblackboxtesting.service.external.response.ExternalResource;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,8 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.Collections.emptyList;
 
 @Service
 public class ExternalService {
@@ -29,6 +32,8 @@ public class ExternalService {
     this.authHost = authHost;
     this.resourceHost = resourceHost;
     this.restTemplate = restTemplate;
+
+    restTemplate.getMessageConverters().add(0, new JsonRootMessageConverter());
   }
 
   @EventListener(ApplicationReadyEvent.class)
@@ -39,6 +44,6 @@ public class ExternalService {
 
   public List<ExternalResource> getResources() {
     ExternalResource[] resources = restTemplate.getForObject(resourceHost + "?token={token}", ExternalResource[].class, authToken);
-    return Optional.ofNullable(resources).map(Arrays::asList).orElseThrow();
+    return Optional.ofNullable(resources).map(Arrays::asList).orElse(emptyList());
   }
 }

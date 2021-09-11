@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
@@ -79,7 +80,18 @@ class BlackBoxTest {
     server.expect(requestTo("http://localhost:0/host?token=authorized"))
         .andRespond(withSuccess("[]", MediaType.APPLICATION_JSON));
 
-    var result = mockMvc.perform(get("/main/resource"))
+    mockMvc.perform(get("/main/resource"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isEmpty())
+        .andReturn();
+  }
+
+  @Test
+  void testGetUnexpectedJsonObject() throws Exception {
+    server.expect(requestTo("http://localhost:0/host?token=authorized"))
+        .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+    mockMvc.perform(get("/main/resource"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$").isEmpty())
         .andReturn();
