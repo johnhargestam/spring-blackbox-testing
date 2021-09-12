@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.stream.IntStream;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -31,7 +33,7 @@ class AuthServiceTest {
   @Test
   void testAuthorize_callsExternalService() {
     when(restTemplate.getForObject(HOST, Authorization.class))
-        .thenReturn(new Authorization("token", 0));
+        .thenReturn(new Authorization("token", 200L));
 
     String token = service.getAuthorizationToken();
 
